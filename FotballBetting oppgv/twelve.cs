@@ -1,46 +1,87 @@
 using System;
 
+
 namespace FotballBetting_oppgv
 {
     public class Twelve
     {
-        public static void TwelveMatches(){   
-            Console.Write("Gyldig tips: \r\n - H, U, B\r\n - halvgardering: HU, HB, UB\r\n - helgardering: HUB\r\nSkriv inn dine 12 tips med komma mellom: ");
-            var betsText = Console.ReadLine()?.ToUpper();
-            if (betsText != null)
-            {
-                var bets = betsText.Split(',');
-                var matches = new Match[12];
-                for (var i = 0; i < 12; i++)
-                {
-                    matches[i] = new Match(bets[i]);
-                }
+        // public string[] Bets { get; private set; }
+        private Match[] _matches;
 
-                while (true)
+        public Twelve(string betsText)
+    {
+        var bets = betsText.Split(',');
+        _matches = new Match[12];
+        for (var i = 0; i < 12; i++)
+        {
+            _matches[i] = new Match(bets[i]);
+        }
+    }
+        
+        public static void RunTwelve()
+        {
+            Console.Write(
+                "Gyldig tips: \r\n - H, U, B\r\n - halvgardering: HU, HB, UB\r\n - helgardering: HUB\r\nSkriv inn dine 12 tips med komma mellom: ");
+            var betsText = Console.ReadLine()?.ToUpper();
+            var matches = new Twelve(betsText);
+            while (true)
+            {
+                Console.Write(
+                    "Skriv kampnr. 1-12 for scoring\n S for alle kampers stillinger\n X for ferdig\r\nAngi kommando: ");
+                var command = Console.ReadLine()?.ToUpper();
+                if (command != null && command == "X")
                 {
-                    Console.Write("Skriv kampnr. 1-12 for scoring eller X for alle kampene er ferdige\r\nAngi kommando: ");
-                    var command = Console.ReadLine()?.ToUpper();
-                    if (command == "X") break;
+                    break;
+                }
+                else if (command == "S")
+                {
+                    matches.ShowAllScores();
+                    matches.ShowCorrectCount();
+                    Console.ReadKey();
+                }
+                else
+                {
                     var matchNo = Convert.ToInt32(command);
                     Console.Write($"Scoring i kamp {matchNo}. \r\nSkriv H for hjemmelag eller B for bortelag: ");
                     var team = Console.ReadLine()?.ToUpper();
-                    var selectedIndex = matchNo - 1;
-                    var selectedMatch = matches[selectedIndex];
-                    selectedMatch.AddGoal(team == "H");
-                    var correctCount = 0;
-                    for (var index = 0; index < matches.Length; index++)
-                    {
-                        var match = matches[index];
-                        matchNo = index + 1;
-                        bool isBetCorrect = Match.IsBetCorrect();
-                        var isBetCorrectText = isBetCorrect ? "riktig" : "feil";
-                        if (isBetCorrect) correctCount++;
-                        Console.WriteLine($"Kamp {matchNo}: {Match.GetScore()} - {isBetCorrectText}");
-                    }
-
-                    Console.WriteLine($"Du har {correctCount} rette.");
+                    matches.AddGoal(matchNo, team == "H");
                 }
             }
+
+            matches.ShowCorrectCount();
+        }
+ 
+        public void ShowCorrectCount()
+        
+            {
+                var correctCount = 0;
+                foreach (var match in _matches)
+                {
+                    if (match.IsBetCorrect()) correctCount++;
+                }
+                Console.WriteLine($"Du har {correctCount} rette.");
+            }
+        
+
+        public void ShowAllScores()
+        {
+            for (var index = 0; index < _matches.Length; index++)
+            {
+                var match = _matches[index];
+                var matchNo = index + 1;
+                var isBetCorrect = match.IsBetCorrect();
+                var isBetCorrectText = isBetCorrect ? "riktig" : "feil";
+                Console.WriteLine($"Kamp {matchNo}: {match.GetScore()} - {isBetCorrectText}");
+            }
+        }
+
+        public void AddGoal(int matchNo, bool isHomeTeam)
+        {
+            var selectedIndex = matchNo - 1;
+            var selectedMatch = _matches[selectedIndex];
+            selectedMatch.AddGoal(isHomeTeam);
         }
     }
+
+
 }
